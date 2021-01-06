@@ -108,7 +108,8 @@ matrices, however the size of additional matrices are pretty different
 	 M  size of the control
 	 P  size of the constraint force
 """
-struct DynamicsExpansionMC{T,N,N̄,M,P}
+
+mutable struct DynamicsExpansionMC{T,N,N̄,M,P}
 	A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}  # nxn
 	B::SizedMatrix{N̄,M,T,2,Matrix{T}}  # nxm
 	C::SizedMatrix{N̄,P,T,2,Matrix{T}}  # nxp
