@@ -92,6 +92,39 @@ struct DynamicsExpansion{T,N,N̄,M}
 	end
 end
 
+"""
+	
+	DynamicsExpansionMC{T,N,N̄,M,P}
+
+Note: this is a very early implementation without thorough design thinking
+Stores the dynamics expansion for a single time instance for a system represented in maximal coordinate
+Originally we thought we could just expand DynamicsExpansion by adding more 
+matrices, however the size of additional matrices are pretty different 
+
+{T,N,N̄,M}
+	 T  data type
+	 N  size of state 
+	 N̄  size of the error state (in case the state has Lie group elements)
+	 M  size of the control
+	 P  size of the constraint force
+"""
+struct DynamicsExpansionMC{T,N,N̄,M,P}
+	A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}  # nxn
+	B::SizedMatrix{N̄,M,T,2,Matrix{T}}  # nxm
+	C::SizedMatrix{N̄,P,T,2,Matrix{T}}  # nxp
+	G::SizedMatrix{P,N̄,T,2,Matrix{T}}  # pxn
+
+	function DynamicsExpansionMC{T}(n::Int, m::Int, p::Int) where T
+		A = SizedMatrix{n,n}(zeros(n,n))
+		B = SizedMatrix{n,m}(zeros(n,m))
+		C = SizedMatrix{n,p}(zeros(n,p))
+		G = SizedMatrix{p,n}(zeros(p,n))
+		new{T,n,n,m,p}(A,B,C,G)
+
+	end
+
+end
+
 function save_tmp!(D::DynamicsExpansion)
 	D.tmpA .= D.A_
 	D.tmpB .= D.B_
@@ -132,6 +165,8 @@ end
 	n̄ = state_diff_size(model)
 	DynamicsExpansion{T}(n,n̄,m)
 end
+
+
 
 function error_expansion!(D::Vector{<:DynamicsExpansion}, model::AbstractModel, G)
 	for d in D
