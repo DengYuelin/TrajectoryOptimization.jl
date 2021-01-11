@@ -8,6 +8,21 @@ struct GradientExpansion{T,N,M} <: AbstractExpansion{T}
 	end
 end
 
+struct QExpansionMC#{T,N,M,P} <: AbstractExpansion{T}
+	x
+	u
+	λ
+	ux
+	uu
+	uλ
+	xx
+	xu
+	xλ
+	λx
+	λu
+	λλ
+end
+
 # TODO: Move to ALTRO
 """
 	DynamicsExpansion{T,N,N̄,M}
