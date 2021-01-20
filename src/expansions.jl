@@ -24,6 +24,9 @@ struct QExpansionMC#{T,N,M,P} <: AbstractExpansion{T}
 end
 
 # TODO: Move to ALTRO
+
+abstract type GeneralDynamicsExpansion end
+
 """
 	DynamicsExpansion{T,N,N̄,M}
 
@@ -58,7 +61,7 @@ The Jacobians should be extracted using
 This method will provide the error state Jacobians for `LieGroupModel`s, and 
 	the normal Jacobian otherwise. Both `fdx` and `fdu` are a `SizedMatrix`.
 """
-struct DynamicsExpansion{T,N,N̄,M}
+struct DynamicsExpansion{T,N,N̄,M} <: GeneralDynamicsExpansion
 	∇f::Matrix{T} # n × (n+m)
 	∇²f::Matrix{T}  # (n+m) × (n+m)
 	A_::SubArray{T,2,Matrix{T},Tuple{UnitRange{Int},UnitRange{Int}},false}
@@ -124,7 +127,7 @@ matrices, however the size of additional matrices are pretty different
 	 P  size of the constraint force
 """
 
-mutable struct DynamicsExpansionMC{T,N,N̄,M,P}
+mutable struct DynamicsExpansionMC{T,N,N̄,M,P} <: GeneralDynamicsExpansion
 	A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}  # nxn
 	B::SizedMatrix{N̄,M,T,2,Matrix{T}}  # nxm
 	C::SizedMatrix{N̄,P,T,2,Matrix{T}}  # nxp
