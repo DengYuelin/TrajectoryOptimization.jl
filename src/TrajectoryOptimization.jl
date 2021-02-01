@@ -9,6 +9,7 @@ using StaticArrays
 using LinearAlgebra
 using DocStringExtensions
 using ForwardDiff
+using FiniteDiff
 using UnsafeArrays
 using SparseArrays
 using MathOptInterface
@@ -72,6 +73,7 @@ export
 
 include("expansions.jl")
 include("costfunctions.jl")
+include("quadratic_costs.jl")
 include("lie_costs.jl")
 include("objective.jl")
 

@@ -7,13 +7,16 @@ using SparseArrays
 using ForwardDiff
 using RobotDynamics
 using BenchmarkTools
+using FiniteDiff
 const TO = TrajectoryOptimization
+Random.seed!(1)
 
 include("test_models.jl")
 
 @testset "Costs" begin
     include("cost_tests.jl")
     include("objective_tests.jl")
+    include("nlcosts.jl")
 end
 
 @testset "Constraints" begin
