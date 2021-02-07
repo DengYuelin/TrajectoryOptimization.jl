@@ -107,7 +107,7 @@ function LieLQRCost(s::RD.LieState{Rot,P},
         xf, uf=zeros(size(R,1)); kwargs...) where {Rot,P}
     @assert length(Q.diag) == length(s)
     vinds = [RobotDynamics.vec_inds(Rot, P, i) for i = 1:length(P)]
-    Qs = [Q[vind] for vind in vinds]
+    Qs = [Q.diag[vind] for vind in vinds]
     LieLQRCost(s, Qs, R, xf, uf; kwargs...)
 end
 
@@ -138,12 +138,18 @@ RobotDynamics.control_dim(::DiagonalLieCost{<:Any,m}) where m = m
 is_blockdiag(::DiagonalLieCost) = true
 is_diag(::DiagonalLieCost) = true
 
+function stage_cost(cost::DiagonalLieCost, x::SVector, u::SVector)
+    stage_cost(cost, x) + 0.5*u'cost.R*u + cost.r'u
+end
 
 function stage_cost(cost::DiagonalLieCost, x::AbstractVector)
     Rot = RobotDynamics.rotation_type(cost)
     Jv = veccost(cost.Q, cost.q, x, cost.vinds)
     Jr = quatcost(Rot, cost.w, x, cost.qinds, cost.qrefs)
-    return Jv + Jr
+    # @show Jv
+    # @show Jr
+    # @show cost.c
+    return Jv + Jr + cost.c
 end
 
 function veccost(Q, q, x, vinds)
@@ -158,7 +164,9 @@ function quatcost(::Type{Rot}, w, x, qinds, qref) where Rot<:Rotation
         q = toquat(Rot, x[qinds[i]])
         qd = Rotations.params(qref[i])
         err = q'qd
+        # @show err
         J = w[i]*min(1-err,1+err)
+        # @show J
     end
     return J
 end
