@@ -110,39 +110,6 @@ struct DynamicsExpansion{T,N,N̄,M} <: GeneralDynamicsExpansion
 	end
 end
 
-"""
-	
-	DynamicsExpansionMC{T,N,N̄,M,P}
-
-Note: this is a very early implementation without thorough design thinking
-Stores the dynamics expansion for a single time instance for a system represented in maximal coordinate
-Originally we thought we could just expand DynamicsExpansion by adding more 
-matrices, however the size of additional matrices are pretty different 
-
-{T,N,N̄,M}
-	 T  data type
-	 N  size of state 
-	 N̄  size of the error state (in case the state has Lie group elements)
-	 M  size of the control
-	 P  size of the constraint force
-"""
-
-mutable struct DynamicsExpansionMC{T,N,N̄,M,P} <: GeneralDynamicsExpansion
-	A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}  # nxn
-	B::SizedMatrix{N̄,M,T,2,Matrix{T}}  # nxm
-	C::SizedMatrix{N̄,P,T,2,Matrix{T}}  # nxp
-	G::SizedMatrix{P,N̄,T,2,Matrix{T}}  # pxn
-
-	function DynamicsExpansionMC{T}(n::Int, m::Int, p::Int) where T
-		A = SizedMatrix{n,n}(zeros(n,n))
-		B = SizedMatrix{n,m}(zeros(n,m))
-		C = SizedMatrix{n,p}(zeros(n,p))
-		G = SizedMatrix{p,n}(zeros(p,n))
-		new{T,n,n,m,p}(A,B,C,G)
-
-	end
-
-end
 
 function save_tmp!(D::DynamicsExpansion)
 	D.tmpA .= D.A_
@@ -222,3 +189,75 @@ end
 # 	error_expansion!(D, G1, G2)
 # 	return D.A, D.B
 # end
+
+
+
+"""
+	
+DynamicsExpansionMC{T,N,N̄,M,P}
+
+Note: this is a very early implementation without thorough design thinking
+Stores the dynamics expansion for a single time instance for a system represented in maximal coordinate
+Originally we thought we could just expand DynamicsExpansion by adding more 
+matrices, however the size of additional matrices are pretty different 
+
+{T,N,N̄,M}
+ T  data type
+ N  size of state 
+ N̄  size of the error state (in case the state has Lie group elements)
+ M  size of the control
+ P  size of the constraint force
+"""
+
+# mutable struct DynamicsExpansionMC{T,N,N̄,M,P} <: GeneralDynamicsExpansion
+# 	A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}  # nxn
+# 	B::SizedMatrix{N̄,M,T,2,Matrix{T}}  # nxm
+# 	C::SizedMatrix{N̄,P,T,2,Matrix{T}}  # nxp
+# 	G::SizedMatrix{P,N̄,T,2,Matrix{T}}  # pxn
+
+# 	function DynamicsExpansionMC{T}(n::Int, m::Int, p::Int) where T
+# 		A = SizedMatrix{n,n}(zeros(n,n))
+# 		B = SizedMatrix{n,m}(zeros(n,m))
+# 		C = SizedMatrix{n,p}(zeros(n,p))
+# 		G = SizedMatrix{p,n}(zeros(p,n))
+# 		new{T,n,n,m,p}(A,B,C,G)
+
+# 	end
+
+# end
+
+mutable struct DynamicsExpansionMC{T,N,N̄,M,P} <: GeneralDynamicsExpansion
+∇f::Matrix{T} # n × (n+m)
+A_::SubArray{T,2,Matrix{T},Tuple{UnitRange{Int},UnitRange{Int}},false}
+B_::SubArray{T,2,Matrix{T},Tuple{UnitRange{Int},UnitRange{Int}},false}
+C_::SubArray{T,2,Matrix{T},Tuple{UnitRange{Int},UnitRange{Int}},false}
+A::SizedMatrix{N̄,N̄,T,2,Matrix{T}}
+B::SizedMatrix{N̄,M,T,2,Matrix{T}}
+C::SizedMatrix{N̄,P,T,2,Matrix{T}}
+tmpA::SizedMatrix{N,N,T,2,Matrix{T}}
+tmpB::SizedMatrix{N,M,T,2,Matrix{T}}
+tmpC::SizedMatrix{N,P,T,2,Matrix{T}}
+tmp::SizedMatrix{N,N̄,T,2,Matrix{T}}
+G::SizedMatrix{P,N̄,T,2,Matrix{T}}  # pxn
+function DynamicsExpansionMC{T}(n0::Int, n::Int, m::Int, p::Int) where T
+    ∇f = zeros(n0,n0+m+p)
+    ix = 1:n0
+    iu = n0 .+ (1:m)
+    iλ = (n0+m) .+ (1:p)
+    A_ = view(∇f, ix, ix)
+    B_ = view(∇f, ix, iu)
+    C_ = view(∇f, ix, iλ)
+    A = SizedMatrix{n,n}(zeros(n,n))
+    B = SizedMatrix{n,m}(zeros(n,m))
+    C = SizedMatrix{n,p}(zeros(n,p))
+    tmpA = SizedMatrix{n0,n0}(zeros(n0,n0))
+    tmpB = SizedMatrix{n0,m}(zeros(n0,m))
+    tmpC = SizedMatrix{n0,p}(zeros(n0,p))
+    tmp = zeros(n0,n)
+    G = SizedMatrix{p,n}(zeros(p,n))
+    new{T,n0,n,m,p}(∇f,A_,B_,C_,A,B,C,tmpA,tmpB,tmpC,tmp,G)
+end
+function DynamicsExpansionMC{T}(n::Int, m::Int, p::Int) where T
+    DynamicsExpansionMC{T}(n, n, m, p)
+end
+end
