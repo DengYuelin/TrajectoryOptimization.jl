@@ -193,6 +193,12 @@ function hessian!(E::QuadraticCostFunction, cost::DiagonalLieCost{n}, x::Abstrac
     for (i,j) in enumerate(cost.vinds) 
         E.Q[j,j] = cost.Q[i]
     end
+
+    for qind in cost.qinds
+        for i in qind
+            E.Q[i,i] = 0
+        end
+    end
     return true
 end
 
@@ -304,7 +310,7 @@ function stage_cost(cost::DiagonalQuatCost, x::SVector)
 end
 
 function gradient!(E::QuadraticCostFunction, cost::DiagonalQuatCost{T,N,M}, 
-        x::SVector) where {T,N,M}
+        x::AbstractVector) where {T,N,M}
     Qx = cost.Q*x + cost.q
     q = x[cost.q_ind]
     dq = cost.q_ref'q
