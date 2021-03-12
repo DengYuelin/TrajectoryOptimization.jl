@@ -239,6 +239,7 @@ tmpB::SizedMatrix{N,M,T,2,Matrix{T}}
 tmpC::SizedMatrix{N,P,T,2,Matrix{T}}
 tmp::SizedMatrix{N,N̄,T,2,Matrix{T}}
 G::SizedMatrix{P,N̄,T,2,Matrix{T}}  # pxn
+all_partials::Matrix{T}
 function DynamicsExpansionMC{T}(n0::Int, n::Int, m::Int, p::Int) where T
     ∇f = zeros(n0,n0+m+p)
     ix = 1:n0
@@ -255,7 +256,8 @@ function DynamicsExpansionMC{T}(n0::Int, n::Int, m::Int, p::Int) where T
     tmpC = SizedMatrix{n0,p}(zeros(n0,p))
     tmp = zeros(n0,n)
     G = SizedMatrix{p,n}(zeros(p,n))
-    new{T,n0,n,m,p}(∇f,A_,B_,C_,A,B,C,tmpA,tmpB,tmpC,tmp,G)
+	all_partials = zeros(n0, 2n0+m+p)
+    new{T,n0,n,m,p}(∇f,A_,B_,C_,A,B,C,tmpA,tmpB,tmpC,tmp,G,all_partials)
 end
 function DynamicsExpansionMC{T}(n::Int, m::Int, p::Int) where T
     DynamicsExpansionMC{T}(n, n, m, p)
